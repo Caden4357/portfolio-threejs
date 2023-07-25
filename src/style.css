@@ -1,0 +1,32 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  /* ? background color like a sunny day */
+}
+h1{
+  font-size: 42px;
+}
+.snowy{
+  /* background: linear-gradient(0deg, rgb(198, 223, 243), rgb(116, 152, 169) 60%, rgb(62, 106, 125)) */
+  background: linear-gradient(0deg, rgb(68, 83, 95), rgb(30, 64, 80) 60%, rgb(22, 49, 61))
+
+}
+
+.sunny{
+  background: linear-gradient(0deg, rgb(103, 103, 103), rgb(232, 232, 165) 60%, rgb(255, 255, 255) )
+}
+.draw {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+.text-center{
+  text-align: center;
+}
+.white{
+  /* color: white; */
+}
