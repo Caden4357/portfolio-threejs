@@ -5,11 +5,13 @@ import {
     OrbitControls,
 } from "three/examples/jsm/controls/OrbitControls";
 import * as dat from "dat.gui";
-
-
+import headshot from '../static/textures/headshot.jpg'
+const img = document.querySelector('.profile-pic');
+img.src = headshot;
 //Scene
 const scene = new THREE.Scene();
 const textureLoader = new THREE.TextureLoader();
+const cloudTexture = textureLoader.load("/textures/2k_mars.jpg");
 const particleTexture = textureLoader.load("/textures/alphaSnow.jpg")
 //Debugging
 const gui = new dat.GUI();
@@ -44,14 +46,16 @@ window.addEventListener("resize", () => {
 });
 
 // Box Geometry
-// const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-// const boxMaterial = new THREE.MeshStandardMaterial({ color: 'white' });
-// const box = new THREE.Mesh(boxGeometry, boxMaterial);
-// scene.add(box);
+const marsGeo = new THREE.SphereGeometry(1, 32, 32);
+const marsMaterial = new THREE.MeshBasicMaterial({alphaMap: cloudTexture});
+marsMaterial.map = cloudTexture;
+
+const mars = new THREE.Mesh(marsGeo, marsMaterial);
+// scene.add(mars);
 // ? add box to gui
-// gui.add(box.position, "y").min(-3).max(3).step(0.01).name("boxY");
-// gui.add(box.position, "x").min(-3).max(3).step(0.01).name("boxX");
-// gui.add(box.position, "z").min(-3).max(3).step(0.01).name("boxZ");
+gui.add(mars.position, "y").min(-3).max(3).step(0.01).name("marsY");
+gui.add(mars.position, "x").min(-3).max(3).step(0.01).name("marsX");
+gui.add(mars.position, "z").min(-3).max(3).step(0.01).name("marsZ");
 // gui.add(box, "visible");
 
 
@@ -60,7 +64,7 @@ const geometry = new THREE.BufferGeometry();
 const verticesAmount = 12000
 const positions = new Float32Array(verticesAmount * 3);
 for (let i = 0; i < verticesAmount * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 6;
+    positions[i] = (Math.random() - 0.5) * 8;
 }
 geometry.setAttribute(
     "position",
@@ -71,7 +75,10 @@ material.size = 0.02;
 material.alphaMap = particleTexture;
 material.transparent = true;
 material.depthTest = false;
+// material.position.y = 1.5;
+
 const points = new THREE.Points(geometry, material);
+// points.position.z = -1;
 scene.add(points);
 
 //Camera
@@ -82,6 +89,15 @@ const aspect = {
 const camera = new THREE.PerspectiveCamera(75, aspect.width / aspect.height, 0.01, 100);
 camera.position.z = 2;
 scene.add(camera);
+
+// ? add camera to gui
+gui.add(camera.position, "z").min(0).max(10).step(0.01).name("cameraZ");
+gui.add(camera.position, "x").min(-3).max(3).step(0.01).name("cameraX");
+gui.add(camera.position, "y").min(-3).max(3).step(0.01).name("cameraY");
+gui.add(camera, "fov").min(0).max(180).step(0.01).name("cameraFOV");
+gui.add(camera, "near").min(0).max(10).step(0.01).name("cameraNear");
+gui.add(camera, "far").min(0).max(10).step(0.01).name("cameraFar");
+gui.add(camera, "aspect").min(0).max(10).step(0.01).name("cameraAspect");
 
 //Renderer
 const canvas = document.querySelector(".draw");
@@ -112,14 +128,23 @@ body.addEventListener("click", () => {
     }
 
 });
-
+console.log(points.position);
 const animate = () => {
     //GetElapsedTime
     const elapsedTime = clock.getElapsedTime();
 
     // * animate particles 
-    // points.rotation.y = elapsedTime * -0.1;
-    points.rotation.x = elapsedTime * 0.2;
+    points.rotation.x = elapsedTime * 0.1;
+    // if(points.position.y < -1.5){
+    //     points.position.set(0,0,0);
+    // }
+    // else{
+    //     points.position.y = - elapsedTime * 0.2;
+    // }
+    // ? make points fall down and reset
+    
+    // points.position.y = Math.sin(-elapsedTime * 0.2);
+    // console.log(points.position.y);
     // points.rotation.x = Math.sin(elapsedTime * 0.2);
     // points.rotation.x = Math.tan(elapsedTime * 0.2);
 
