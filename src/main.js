@@ -5,31 +5,34 @@ import {
     OrbitControls,
 } from "three/examples/jsm/controls/OrbitControls";
 import * as dat from "dat.gui";
-import headshot from '../static/textures/headshot.jpg'
-const img = document.querySelector('.profile-pic');
-img.src = headshot;
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+const objLoader = new OBJLoader();
+// ! Models 
+let introBlock;
+
+// import headshot from '../static/textures/headshot.jpg'
+// const img = document.querySelector('.profile-pic');
+// const profile = document.querySelector('.profile');
+// img.src = headshot;
 //Scene
 const scene = new THREE.Scene();
 const textureLoader = new THREE.TextureLoader();
-const cloudTexture = textureLoader.load("/textures/2k_mars.jpg");
+const brickWall = textureLoader.load("/textures/brick-wall.jpg");
 const particleTexture = textureLoader.load("/textures/alphaSnow.jpg")
 //Debugging
 const gui = new dat.GUI();
 
-
-// * Sun light
-// const directionalLight = new THREE.DirectionalLight('white', .8);
-// directionalLight.position.set(1, 1, 1);
-// scene.add(directionalLight);
-// const ambientLight = new THREE.AmbientLight('white', .5);
-// scene.add(ambientLight);
+// * Lights
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+directionalLight.position.z = 2;
+scene.add(ambientLight, directionalLight);
 
 
-
-// gui.add(directionalLight, "intensity").min(0).max(1).step(0.01);
-// gui.add(directionalLight.position, "x").min(-5).max(5).step(0.01);
-// gui.add(directionalLight.position, "y").min(-5).max(5).step(0.01);
-// gui.add(directionalLight.position, "z").min(-5).max(5).step(0.01);
+gui.add(directionalLight, "intensity").min(0).max(1).step(0.01);
+gui.add(directionalLight.position, "x").min(-5).max(5).step(0.01);
+gui.add(directionalLight.position, "y").min(-5).max(5).step(0.01);
+gui.add(directionalLight.position, "z").min(-5).max(5).step(0.01);
 //Resizing
 window.addEventListener("resize", () => {
     //Update Size
@@ -45,18 +48,24 @@ window.addEventListener("resize", () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
-// Box Geometry
-const marsGeo = new THREE.SphereGeometry(1, 32, 32);
-const marsMaterial = new THREE.MeshBasicMaterial({alphaMap: cloudTexture});
-marsMaterial.map = cloudTexture;
-
-const mars = new THREE.Mesh(marsGeo, marsMaterial);
-// scene.add(mars);
-// ? add box to gui
-gui.add(mars.position, "y").min(-3).max(3).step(0.01).name("marsY");
-gui.add(mars.position, "x").min(-3).max(3).step(0.01).name("marsX");
-gui.add(mars.position, "z").min(-3).max(3).step(0.01).name("marsZ");
-// gui.add(box, "visible");
+// * Button 
+const planeGeo = new THREE.BoxGeometry(1,1,.01);
+const buttonMaterial = new THREE.MeshBasicMaterial({ color: 'skyblue' });
+const button = new THREE.Mesh(planeGeo, buttonMaterial);
+button.position.set(-5, 2, -1);
+scene.add(button);
+gui.add(button.position, "y").min(-3).max(3).step(0.01).name("buttonY");
+gui.add(button.position, "x").min(-3).max(3).step(0.01).name("buttonX");
+gui.add(button.position, "z").min(-3).max(3).step(0.01).name("buttonZ");
+// * Loading model
+objLoader.load("./models/untitled.obj", (object) => {
+    introBlock = object;
+    object.position.set(0, 0, 2); 
+    object.rotation.y = -1.5; 
+    object.scale.set(0.1, 0.1, 0.1);
+    object.children[0].material = new THREE.MeshBasicMaterial({ color: 'skyblue' });
+    // scene.add(object);
+});
 
 
 //Mesh
@@ -87,7 +96,7 @@ const aspect = {
     height: window.innerHeight,
 };
 const camera = new THREE.PerspectiveCamera(75, aspect.width / aspect.height, 0.01, 100);
-camera.position.z = 2;
+camera.position.set(0, 0, 3);
 scene.add(camera);
 
 // ? add camera to gui
@@ -99,9 +108,34 @@ gui.add(camera, "near").min(0).max(10).step(0.01).name("cameraNear");
 gui.add(camera, "far").min(0).max(10).step(0.01).name("cameraFar");
 gui.add(camera, "aspect").min(0).max(10).step(0.01).name("cameraAspect");
 
+// * Raycaster
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+// ? add a hover event to a three js object
+window.addEventListener("mousemove", (event) => {
+    const elapsedTime = clock.getElapsedTime();
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    // console.log(pointer);
+    // * Casting ray
+    raycaster.setFromCamera(pointer, camera);
+    // * Intersecting
+    const intersectedObj = raycaster.intersectObjects([button]);
+    if(intersectedObj.length > 0){
+        button.material.color.set('red');
+        button.scale.set(1.1,1.1,1.1);
+        scene.add(introBlock);
+    }
+    else if(intersectedObj.length === 0){
+        button.material.color.set('skyblue');
+        button.scale.set(1,1,1);
+        scene.remove(introBlock);
+    }
+})
+
 //Renderer
 const canvas = document.querySelector(".draw");
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true});
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
 renderer.setSize(aspect.width, aspect.height);
 
 //OrbitControls
@@ -113,21 +147,21 @@ orbitControls.enableDamping = true;
 const clock = new THREE.Clock();
 
 // * Grabbing body to change background color
-const body = document.querySelector("body");
-body.addEventListener("click", () => {
-    console.log('here');
-    if(body.classList.contains('snowy')){
-        body.classList.remove('snowy');
-        body.classList.add('sunny');
-        // scene.remove(points);
-    }
-    else{
-        body.classList.remove('sunny');
-        body.classList.add('snowy');
-        // scene.add(points);
-    }
+// const body = document.querySelector("body");
+// body.addEventListener("click", () => {
+//     console.log('here');
+//     if(body.classList.contains('snowy')){
+//         body.classList.remove('snowy');
+//         body.classList.add('sunny');
+//         // scene.remove(points);
+//     }
+//     else{
+//         body.classList.remove('sunny');
+//         body.classList.add('snowy');
+//         // scene.add(points);
+//     }
 
-});
+// });
 console.log(points.position);
 const animate = () => {
     //GetElapsedTime
@@ -135,18 +169,9 @@ const animate = () => {
 
     // * animate particles 
     points.rotation.x = elapsedTime * 0.1;
-    // if(points.position.y < -1.5){
-    //     points.position.set(0,0,0);
+    // if(introBlock){
+    //     introBlock.rotation.y = -elapsedTime;
     // }
-    // else{
-    //     points.position.y = - elapsedTime * 0.2;
-    // }
-    // ? make points fall down and reset
-    
-    // points.position.y = Math.sin(-elapsedTime * 0.2);
-    // console.log(points.position.y);
-    // points.rotation.x = Math.sin(elapsedTime * 0.2);
-    // points.rotation.x = Math.tan(elapsedTime * 0.2);
 
     //Update Controls
     orbitControls.update();

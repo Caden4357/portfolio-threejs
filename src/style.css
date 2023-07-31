@@ -15,6 +15,10 @@ h1{
   background: linear-gradient(0deg, rgb(68, 83, 95), rgb(30, 64, 80) 60%, rgb(22, 49, 61))
 
 }
+.space{
+  /* ?background image from static\pictures\bg.png */
+  /* background-image: url("static/textures/bg.png"); */
+}
 
 .sunny{
   background: linear-gradient(0deg, rgb(103, 103, 103), rgb(232, 232, 165) 60%, rgb(255, 255, 255) )
@@ -43,6 +47,7 @@ h1{
   box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
   position: relative;
   z-index: 20;
+  display: none;
 }
 .profile-pic{
   width: 200px;
@@ -51,3 +56,25 @@ h1{
   margin: 20px auto;
   box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.5);
 }
+
+/* ? Animate the profile div into the scene */
+.profile{
+  animation: profile 1s ease forwards;
+}
+/* ? write the profile animate function */
+@keyframes profile{
+  0%{
+    transform: translateY(100%);
+  }
+  100%{
+    transform: translateY(0%);
+  }
+}
+
+
+/* ? Animate the profile div out of the scene */
+.profile.inactive{
+  animation: profileOut 1s ease forwards;
+}
+
+
